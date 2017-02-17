@@ -27,10 +27,10 @@ void RfduinoData()
   analogSelection(VDD_1_3_PS);         
   int sensorValue = analogRead(1); 
   rfduinoData.voltage = sensorValue * (360 / 1023.0) * 10; 
-  rfduinoData.voltagePercent = map(rfduinoData.voltage, 3000, 3600, 0, 100);  
+  rfduinoData.voltagePercent = map(rfduinoData.voltage, 2900, 3600, 0, 100);  
   rfduinoData.temperatureC = RFduino_temperature(CELSIUS); 
   rfduinoData.temperatureF = RFduino_temperature(FAHRENHEIT);  
-  if (rfduinoData.voltage < 3000) BatteryOK = false;
+  if (rfduinoData.voltage < 2900) BatteryOK = false;
   else BatteryOK = true;
   
   #ifdef DEBUGM
@@ -208,6 +208,7 @@ void RFduinoBLE_onDisconnect()
     #ifdef DEBUG
       Serial.println("BT disconnected.");
     #endif
+    _UBP_hostDisconnected();
 }
 
 void RFduinoBLE_onConnect() 
@@ -216,6 +217,8 @@ void RFduinoBLE_onConnect()
     #ifdef DEBUG
       Serial.println("BT connected.");
     #endif
+    hostIsConnected = true;
+    if (UBP_didConnect) UBP_didConnect();
 }
 
 void RFduinoBLE_onRSSI(int rssi)
@@ -223,3 +226,11 @@ void RFduinoBLE_onRSSI(int rssi)
   rfduinoData.rssi = rssi;
 }
 
+void RFduinoBLE_onAdvertisement(bool start) {
+    if (UBP_didAdvertise) UBP_didAdvertise(start);
+}
+
+bool BLEconnected()
+{
+  return hostIsConnected;
+}

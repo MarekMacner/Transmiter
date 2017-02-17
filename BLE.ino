@@ -8,14 +8,14 @@ void dataTransferBLE()
       if (protocolType == 1) forLimiTTer();
       else if (protocolType == 2) forTransmiter1();
       else if (protocolType == 3) forTransmiter2(); 
+      else if (protocolType == 4) forLibreCGM();
       #ifdef DEBUGM
         Serial.println("Conected - data transferred");
       #endif
       break;
     }
     else
-    {
-      
+    {     
       #ifdef DEBUGM
         Serial.print("Not conected - data not transferred -> try:");
         Serial.println(i);

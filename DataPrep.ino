@@ -98,6 +98,54 @@ void forTransmiter2()
 
 void forLibreCGM()
 {
-  
+  #ifdef DEBUGM
+    Serial.println("Start BT transmission ...");
+    Serial.printf("IDN Sizeof ist : %d\n", sizeof(systemInformationData));
+  #endif  
+  bool ergo = pumpViaBluetooth(SYSTEM_INFORMATION_DATA, UBP_TxFlagIsRPC, (char *) &systemInformationData, sizeof(SystemInformationDataType));
+  printSystemInformationData(systemInformationData);    
+  #ifdef DEBUGM
+    Serial.println("----about to send all data bytes packet");
+  #endif
+  for (int i = 0; i < sizeof(allBytes.allBytes); i++) 
+  {
+    allBytes.allBytes[i] = 0;
+  }
+  for (int i = 0; i < 344; i++) 
+  {
+    allBytes.allBytes[i] = dataBuffer[i];
+  }
+  #ifdef DEBUGM
+    Serial.printf("All data Sizeof ist : %d\n", sizeof(allBytes));
+  #endif
+  bool success = UBP_queuePacketTransmission(ALL_BYTES, UBP_TxFlagIsRPC, (char *) &allBytes, sizeof(AllBytesDataType));
+  #ifdef DEBUGM
+    if (success) Serial.println("----all data bytes packet queued successfully");
+    else Serial.println("----Failed to enqueue all data bytes packet");
+  #endif
+  while (UBP_isBusy() == true) UBP_pump();
+  batteryData.voltage = (float) rfduinoData.voltage;
+  batteryData.temperature = RFduino_temperature(CELSIUS);
+  #ifdef DEBUGM
+    Serial.printf("Battery voltage: %f\r\n", batteryData.voltage);
+    Serial.printf("Bat Sizeof ist : %d\n", sizeof(batteryData));
+  #endif
+  success = UBP_queuePacketTransmission(BATTERY_DATA, UBP_TxFlagIsRPC, (char *) &batteryData, sizeof(BatteryDataType));
+  #ifdef DEBUGM
+    if (success) Serial.println("Battery data packet queued successfully");
+    else Serial.println("Failed to enqueue battery data packet");
+  #endif
+  while (UBP_isBusy() == true) UBP_pump();
+  #ifdef DEBUGM
+    Serial.printf("Sent Battery voltage: %f\r\n", batteryData.voltage);
+  #endif
+  ergo = pumpViaBluetooth(IDN_DATA, UBP_TxFlagNone, (char *) &idnData, sizeof(IDNDataType));
+  success = UBP_queuePacketTransmission(IDN_DATA, UBP_TxFlagIsRPC, (char *) &idnData, sizeof(IDNDataType));
+  delay(10);
+  #ifdef DEBUGM
+    if (success) Serial.println("IDN data packet queued successfully");
+    else Serial.println("Failed to enqueue IDN data packet");
+  #endif
+  while (UBP_isBusy() == true) UBP_pump();
 }
 

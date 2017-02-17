@@ -14,6 +14,11 @@
 #define PIN_SPI_SS    6
 #define PIN_IRQ       2 
 
+#define ALL_BYTES 0x1007   
+#define IDN_DATA 0x2001    
+#define SYSTEM_INFORMATION_DATA 0x2002  
+#define BATTERY_DATA 0x2005     
+
 typedef struct  __attribute__((packed)) 
 {
   uint8_t resultCode;
@@ -54,6 +59,17 @@ typedef struct  __attribute__((packed))
   double rssi;
 } RFDuinoDataType;
 
+typedef struct  __attribute__((packed)) 
+{
+  uint8_t allBytes[345];
+} AllBytesDataType;
+
+typedef struct  __attribute__((packed)) 
+{
+  float voltage;
+  float temperature;
+} BatteryDataType;
+
 typedef struct dataConfig 
 {
   byte marker;
@@ -61,6 +77,21 @@ typedef struct dataConfig
   byte runPeriod;                     // 0-9 main loop period in miutes, 0=on demenad 
   byte firmware;                      // firmware version starting 0x02
 };
+
+typedef enum {    
+    UBP_TxFlagNone = 0 << 0,
+    UBP_TxFlagIsRPC = 1 << 0,
+    UBP_TxFlagRequiresACK = 1 << 1
+    
+} UBP_TxFlags;
+
+bool UBP_isTxPending = false;
+bool hostIsConnected = false;
+extern void UBP_incomingChecksumFailed() __attribute__((weak));
+extern void UBP_receivedPacket(unsigned short packetIdentifier, UBP_TxFlags txFlags, void *packetBuffer) __attribute__((weak));
+extern void UBP_didAdvertise(bool start) __attribute__((weak));
+extern void UBP_didConnect() __attribute__((weak));
+extern void UBP_didDisconnect() __attribute__((weak));
 
 
 byte resultBuffer[40]; 
@@ -74,6 +105,8 @@ SensorDataDataType sensorData;
 RFDuinoDataType rfduinoData;
 struct dataConfig valueSetup;
 dataConfig *p;
+AllBytesDataType allBytes;
+BatteryDataType batteryData;
 
 byte sensorDataHeader[24];
 byte sensorDataBody[296];
